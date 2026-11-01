@@ -17,14 +17,29 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     font-family: var(--font-sans);
     background-color: #F7F5F0;
     color: #252525;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-serif);
     color: #252525;
+  }
+
+  /* Optimize image rendering for fast visual loading */
+  img {
+    content-visibility: auto;
   }
 }

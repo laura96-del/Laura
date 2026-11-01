@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { PRODUCTS, StoneProduct, BUSINESS_INFO } from '../data/stoneData';
+import { PRODUCTS, BUSINESS_INFO } from '../data/stoneData';
 import { MessageCircle } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
 
 export const ProductCatalog: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -40,7 +41,7 @@ export const ProductCatalog: React.FC = () => {
                 key={cat}
                 type="button"
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+                className={`px-4 py-2 text-xs font-semibold rounded-md transition-all whitespace-nowrap cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-[#9B7954] text-white shadow-xs'
                     : 'text-[#252525] hover:text-[#9B7954]'
@@ -59,15 +60,16 @@ export const ProductCatalog: React.FC = () => {
               key={product.id}
               className="group bg-[#E5E3DF] rounded-xl overflow-hidden border border-[#C8BBA8] hover:border-[#9B7954] transition-all duration-300 flex flex-col shadow-xs hover:shadow-md"
             >
-              {/* Product Photo */}
+              {/* Product Photo with OptimizedImage */}
               <div className="relative aspect-[4/3] overflow-hidden bg-[#DDD5C9]">
-                <img
+                <OptimizedImage
                   src={product.image}
                   alt={product.name}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  fallbackText={product.name}
+                  aspectRatioClass="aspect-[4/3]"
+                  className="transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-[#F7F5F0]/90 backdrop-blur-md text-[11px] font-semibold text-[#252525] border border-[#C8BBA8] shadow-xs">
+                <div className="absolute top-3 left-3 px-2.5 py-1 rounded bg-[#F7F5F0]/90 backdrop-blur-md text-[11px] font-semibold text-[#252525] border border-[#C8BBA8] shadow-xs pointer-events-none">
                   {product.category} · {product.origin}
                 </div>
               </div>

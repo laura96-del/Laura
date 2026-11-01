@@ -1,6 +1,7 @@
 import React from 'react';
-import { ArrowRight, MessageCircle, Phone, MapPin, CheckCircle, Box } from 'lucide-react';
+import { MessageCircle, Phone, CheckCircle, Box } from 'lucide-react';
 import { BUSINESS_INFO } from '../data/stoneData';
+import { OptimizedImage } from './OptimizedImage';
 
 export const Hero: React.FC = () => {
   return (
@@ -31,7 +32,7 @@ export const Hero: React.FC = () => {
                 href={BUSINESS_INFO.whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold text-sm rounded-md transition-all flex items-center gap-2.5 shadow-md shadow-[#25D366]/20 whitespace-nowrap"
+                className="px-6 py-3.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold text-sm rounded-md transition-all flex items-center gap-2.5 shadow-md shadow-[#25D366]/20 whitespace-nowrap cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 fill-white" />
                 <span>Chat on WhatsApp</span>
@@ -39,7 +40,7 @@ export const Hero: React.FC = () => {
 
               <a
                 href="#visualizer-3d"
-                className="px-5 py-3.5 bg-[#E5E3DF] hover:bg-[#DDD5C9] text-[#252525] font-semibold text-sm rounded-md transition-all flex items-center gap-2 whitespace-nowrap border border-[#C8BBA8]"
+                className="px-5 py-3.5 bg-[#E5E3DF] hover:bg-[#DDD5C9] text-[#252525] font-semibold text-sm rounded-md transition-all flex items-center gap-2 whitespace-nowrap border border-[#C8BBA8] cursor-pointer"
               >
                 <Box className="w-4 h-4 text-[#9B7954]" />
                 <span>3D Slab Studio</span>
@@ -47,7 +48,7 @@ export const Hero: React.FC = () => {
 
               <a
                 href={`tel:${BUSINESS_INFO.phoneClean}`}
-                className="px-5 py-3.5 bg-white hover:bg-[#E5E3DF] text-[#252525] font-semibold text-sm rounded-md transition-all flex items-center gap-2 whitespace-nowrap border border-[#C8BBA8]"
+                className="px-5 py-3.5 bg-white hover:bg-[#E5E3DF] text-[#252525] font-semibold text-sm rounded-md transition-all flex items-center gap-2 whitespace-nowrap border border-[#C8BBA8] cursor-pointer"
               >
                 <Phone className="w-4 h-4 text-[#9B7954]" />
                 <span>Call {BUSINESS_INFO.phone}</span>
@@ -70,13 +71,15 @@ export const Hero: React.FC = () => {
           {/* Right Column: Hero Visual Showcase */}
           <div className="lg:col-span-5">
             <div className="relative rounded-xl overflow-hidden border border-[#C8BBA8] shadow-lg bg-[#E5E3DF] group">
-              <img
-                src="/src/assets/images/hero_ktech_marble_showroom_1793469368860.jpg"
+              <OptimizedImage
+                src="/images/hero_ktech_marble_showroom_1793469368860.jpg"
                 alt="Luxury marble wall cladding and polished floor in modern residence"
-                referrerPolicy="no-referrer"
-                className="w-full h-[400px] sm:h-[480px] object-cover transition-transform duration-500 group-hover:scale-105"
+                fallbackText="K-Tech Marble & Granite Showroom"
+                aspectRatioClass="h-[400px] sm:h-[480px] w-full"
+                loading="eager"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-4 left-4 right-4 p-4 rounded-lg bg-[#F7F5F0]/95 backdrop-blur-md border border-[#C8BBA8] shadow-sm text-xs flex items-center gap-3">
                 <img
                   src={BUSINESS_INFO.logoUrl}

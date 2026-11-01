@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { GALLERY_ITEMS, GalleryItem, BUSINESS_INFO } from '../data/stoneData';
 import { MapPin, X, MessageCircle, Maximize2, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
 
 export const GallerySection: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -87,7 +88,7 @@ export const GallerySection: React.FC = () => {
                 key={cat.value}
                 type="button"
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-2 ${
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
                   selectedCategory === cat.value
                     ? 'bg-[#9B7954] text-white shadow-xs'
                     : 'bg-[#E5E3DF] text-[#252525] hover:bg-[#DDD5C9] hover:text-[#9B7954] border border-[#C8BBA8]'
@@ -117,18 +118,19 @@ export const GallerySection: React.FC = () => {
                 onClick={() => setActiveModalIndex(globalIndex)}
                 className="group cursor-pointer rounded-xl overflow-hidden border border-[#C8BBA8] bg-[#E5E3DF] hover:border-[#9B7954] hover:shadow-lg transition-all duration-300 flex flex-col"
               >
-                {/* Visual Image Container */}
+                {/* Visual Image Container with OptimizedImage */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-[#DDD5C9]">
-                  <img
+                  <OptimizedImage
                     src={item.image}
                     alt={item.title}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-106"
+                    fallbackText={item.title}
+                    aspectRatioClass="aspect-[4/3]"
+                    className="transition-transform duration-700 ease-out group-hover:scale-106"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity pointer-events-none" />
 
                   {/* Top Location & Category Chips */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
                     <span className="px-2.5 py-1 rounded bg-[#F7F5F0]/90 backdrop-blur-md text-[11px] font-semibold text-[#252525] border border-[#C8BBA8] shadow-xs">
                       {item.category}
                     </span>
@@ -138,7 +140,7 @@ export const GallerySection: React.FC = () => {
                   </div>
 
                   {/* Bottom Image Overlay Details */}
-                  <div className="absolute bottom-3 left-4 right-4">
+                  <div className="absolute bottom-3 left-4 right-4 pointer-events-none">
                     <div className="flex items-center gap-1.5 text-xs text-stone-200 font-medium mb-1">
                       <MapPin className="w-3.5 h-3.5 text-amber-200" />
                       <span>{item.location}</span>
@@ -242,7 +244,7 @@ export const GallerySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePrev}
-                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8]"
+                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8] cursor-pointer"
                   title="Previous (Left Arrow)"
                   aria-label="Previous Project"
                 >
@@ -251,7 +253,7 @@ export const GallerySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8]"
+                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8] cursor-pointer"
                   title="Next (Right Arrow)"
                   aria-label="Next Project"
                 >
@@ -260,7 +262,7 @@ export const GallerySection: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveModalIndex(null)}
-                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8] ml-2"
+                  className="p-1.5 rounded-full hover:bg-white text-[#252525] transition-colors border border-[#C8BBA8] ml-2 cursor-pointer"
                   title="Close (Escape)"
                   aria-label="Close Lightbox"
                 >
@@ -271,17 +273,19 @@ export const GallerySection: React.FC = () => {
 
             {/* Modal Image Viewport */}
             <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full bg-[#252525] overflow-hidden flex items-center justify-center">
-              <img
+              <OptimizedImage
                 src={activeProject.image}
                 alt={activeProject.title}
-                referrerPolicy="no-referrer"
+                fallbackText={activeProject.title}
+                aspectRatioClass="w-full h-full"
+                loading="eager"
                 className="w-full h-full object-cover"
               />
 
               <button
                 type="button"
                 onClick={handlePrev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs transition-colors cursor-pointer"
                 aria-label="Previous installation"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -289,7 +293,7 @@ export const GallerySection: React.FC = () => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-black/50 hover:bg-black/80 text-white backdrop-blur-xs transition-colors cursor-pointer"
                 aria-label="Next installation"
               >
                 <ChevronRight className="w-5 h-5" />

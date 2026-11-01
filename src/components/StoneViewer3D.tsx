@@ -12,8 +12,12 @@ interface StoneTextureConfig {
   baseColor: string;
 }
 
+// Module-level texture cache to avoid regenerating textures on every render
+const textureCache = new Map<string, THREE.CanvasTexture>();
+
 export const StoneViewer3D: React.FC = () => {
   const mountRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -23,27 +27,32 @@ export const StoneViewer3D: React.FC = () => {
   const autoRotateRef = useRef(true);
   const targetRotation = useRef({ x: 0.15, y: -0.35 });
   const currentRotation = useRef({ x: 0.15, y: -0.35 });
+  const isVisibleRef = useRef(false);
 
   const [selectedStoneId, setSelectedStoneId] = useState<string>('calacatta-gold');
   const [selectedFinish, setSelectedFinish] = useState<'polished' | 'honed' | 'leathered'>('polished');
   const [selectedThickness, setSelectedThickness] = useState<'20mm' | '30mm'>('30mm');
   const [isAutoRotating, setIsAutoRotating] = useState(true);
 
-  // Procedural stone texture generator for realistic natural marble & granite
+  // Fast, lightweight procedural stone texture generator (512x512 for instant startup and low memory)
   const generateStoneTexture = useCallback((type: string): THREE.CanvasTexture => {
+    if (textureCache.has(type)) {
+      return textureCache.get(type)!;
+    }
+
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
+    canvas.width = 512;
+    canvas.height = 512;
     const ctx = canvas.getContext('2d')!;
 
     if (type === 'calacatta-gold') {
       ctx.fillStyle = '#fbf9f4';
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 20; i++) {
+      for (let i = 0; i < 12; i++) {
         ctx.fillStyle = 'rgba(235, 228, 218, 0.25)';
         ctx.beginPath();
-        ctx.arc(Math.random() * 1024, Math.random() * 1024, 80 + Math.random() * 180, 0, Math.PI * 2);
+        ctx.arc(Math.random() * 512, Math.random() * 512, 40 + Math.random() * 90, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -57,122 +66,100 @@ export const StoneViewer3D: React.FC = () => {
         let y = startY;
         ctx.moveTo(x, y);
 
-        for (let j = 0; j < 18; j++) {
-          x += (Math.random() - 0.2) * 90;
-          y += 50 + Math.random() * 40;
+        for (let j = 0; j < 12; j++) {
+          x += (Math.random() - 0.2) * 50;
+          y += 35 + Math.random() * 25;
           ctx.lineTo(x, y);
-
-          if (Math.random() > 0.6) {
-            ctx.save();
-            ctx.lineWidth = width * 0.4;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + (Math.random() - 0.5) * 80, y + Math.random() * 60);
-            ctx.stroke();
-            ctx.restore();
-          }
         }
         ctx.stroke();
       };
 
-      drawVein('rgba(168, 140, 95, 0.65)', 18, 300, 0);
-      drawVein('rgba(115, 110, 102, 0.45)', 14, 280, 0);
-      drawVein('rgba(189, 160, 115, 0.5)', 12, 700, 0);
-      drawVein('rgba(130, 125, 118, 0.35)', 8, 120, 0);
+      drawVein('rgba(168, 140, 95, 0.65)', 10, 160, 0);
+      drawVein('rgba(115, 110, 102, 0.45)', 8, 140, 0);
+      drawVein('rgba(189, 160, 115, 0.5)', 7, 360, 0);
     } else if (type === 'nero-marquina') {
       ctx.fillStyle = '#111112';
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 20; i++) {
         ctx.fillStyle = 'rgba(35, 35, 38, 0.3)';
         ctx.beginPath();
-        ctx.arc(Math.random() * 1024, Math.random() * 1024, 40 + Math.random() * 90, 0, Math.PI * 2);
+        ctx.arc(Math.random() * 512, Math.random() * 512, 20 + Math.random() * 50, 0, Math.PI * 2);
         ctx.fill();
       }
 
       const drawFracture = (startX: number, startY: number) => {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 3 + Math.random() * 4;
+        ctx.lineWidth = 2 + Math.random() * 2;
         ctx.beginPath();
         let x = startX;
         let y = startY;
         ctx.moveTo(x, y);
 
-        for (let j = 0; j < 25; j++) {
-          x += (Math.random() - 0.3) * 70;
-          y += 35 + Math.random() * 30;
+        for (let j = 0; j < 15; j++) {
+          x += (Math.random() - 0.3) * 40;
+          y += 25 + Math.random() * 20;
           ctx.lineTo(x, y);
-
-          if (Math.random() > 0.5) {
-            ctx.save();
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + (Math.random() - 0.5) * 60, y + (Math.random() - 0.3) * 40);
-            ctx.stroke();
-            ctx.restore();
-          }
         }
         ctx.stroke();
       };
 
-      drawFracture(450, 0);
-      drawFracture(750, 50);
-      drawFracture(180, 0);
+      drawFracture(230, 0);
+      drawFracture(380, 30);
     } else if (type === 'black-galaxy') {
       ctx.fillStyle = '#0a0a0c';
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 2400; i++) {
+      for (let i = 0; i < 800; i++) {
         const isGold = Math.random() > 0.35;
         ctx.fillStyle = isGold
           ? `rgba(${220 + Math.random() * 35}, ${170 + Math.random() * 40}, ${90 + Math.random() * 30}, ${0.5 + Math.random() * 0.5})`
           : `rgba(${180 + Math.random() * 50}, ${180 + Math.random() * 50}, ${180 + Math.random() * 50}, ${0.3 + Math.random() * 0.4})`;
 
-        const radius = Math.random() > 0.95 ? 3 + Math.random() * 3 : 0.8 + Math.random() * 1.5;
+        const radius = Math.random() > 0.95 ? 2 + Math.random() * 2 : 0.6 + Math.random() * 1.2;
         ctx.beginPath();
-        ctx.arc(Math.random() * 1024, Math.random() * 1024, radius, 0, Math.PI * 2);
+        ctx.arc(Math.random() * 512, Math.random() * 512, radius, 0, Math.PI * 2);
         ctx.fill();
       }
     } else if (type === 'bianco-carrara') {
       ctx.fillStyle = '#f4f4f4';
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 8; i++) {
         ctx.strokeStyle = 'rgba(150, 155, 160, 0.22)';
-        ctx.lineWidth = 20 + Math.random() * 25;
+        ctx.lineWidth = 14 + Math.random() * 16;
         ctx.beginPath();
-        let x = Math.random() * 1024;
+        let x = Math.random() * 512;
         let y = 0;
         ctx.moveTo(x, y);
-        while (y < 1024) {
-          x += (Math.random() - 0.5) * 50;
-          y += 40 + Math.random() * 40;
+        while (y < 512) {
+          x += (Math.random() - 0.5) * 35;
+          y += 30 + Math.random() * 30;
           ctx.lineTo(x, y);
         }
         ctx.stroke();
       }
     } else if (type === 'emerald-quartzite') {
       ctx.fillStyle = '#102e21';
-      ctx.fillRect(0, 0, 1024, 1024);
+      ctx.fillRect(0, 0, 512, 512);
 
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 15; i++) {
         ctx.fillStyle = 'rgba(24, 66, 48, 0.4)';
         ctx.beginPath();
-        ctx.arc(Math.random() * 1024, Math.random() * 1024, 70 + Math.random() * 120, 0, Math.PI * 2);
+        ctx.arc(Math.random() * 512, Math.random() * 512, 40 + Math.random() * 70, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 4; i++) {
         ctx.strokeStyle = 'rgba(215, 185, 115, 0.55)';
-        ctx.lineWidth = 8 + Math.random() * 12;
+        ctx.lineWidth = 5 + Math.random() * 8;
         ctx.beginPath();
-        let x = Math.random() * 1024;
+        let x = Math.random() * 512;
         let y = 0;
         ctx.moveTo(x, y);
-        while (y < 1024) {
-          x += (Math.random() - 0.4) * 60;
-          y += 50;
+        while (y < 512) {
+          x += (Math.random() - 0.4) * 40;
+          y += 35;
           ctx.lineTo(x, y);
         }
         ctx.stroke();
@@ -183,6 +170,7 @@ export const StoneViewer3D: React.FC = () => {
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = THREE.RepeatWrapping;
     texture.wrapT = THREE.RepeatWrapping;
+    textureCache.set(type, texture);
     return texture;
   }, []);
 
@@ -241,7 +229,7 @@ export const StoneViewer3D: React.FC = () => {
     scene.background = new THREE.Color(0xF7F5F0);
     sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 50);
     camera.position.set(0, 0, 4.6);
     cameraRef.current = camera;
 
@@ -250,7 +238,7 @@ export const StoneViewer3D: React.FC = () => {
       powerPreference: 'high-performance'
     });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Cap at 1.5 for maximum scroll smoothness
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
@@ -261,23 +249,19 @@ export const StoneViewer3D: React.FC = () => {
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const keyLight = new THREE.DirectionalLight(0xfff7ed, 2.4);
+    const keyLight = new THREE.DirectionalLight(0xfff7ed, 2.2);
     keyLight.position.set(3.5, 4.5, 4.0);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.width = 1024;
-    keyLight.shadow.mapSize.height = 1024;
+    keyLight.shadow.mapSize.width = 512;
+    keyLight.shadow.mapSize.height = 512;
     scene.add(keyLight);
 
-    const fillLight = new THREE.DirectionalLight(0xe5e3df, 0.9);
+    const fillLight = new THREE.DirectionalLight(0xe5e3df, 0.8);
     fillLight.position.set(-3.5, -1.0, 2.5);
     scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    rimLight.position.set(0, 3.0, -3.5);
-    scene.add(rimLight);
 
     const thicknessValue = selectedThickness === '30mm' ? 0.09 : 0.06;
     const geometry = new THREE.BoxGeometry(2.8, 1.7, thicknessValue);
@@ -310,13 +294,31 @@ export const StoneViewer3D: React.FC = () => {
     shadowPlane.rotation.x = -Math.PI / 2;
     scene.add(shadowPlane);
 
+    // IntersectionObserver: Pause render loop when offscreen!
+    // This is the #1 fix for scroll jank!
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisibleRef.current = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
     let animationFrameId: number;
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
+      // Only perform 3D calculations and WebGL rendering when visible!
+      if (!isVisibleRef.current) return;
+
       if (autoRotateRef.current) {
-        targetRotation.current.y += 0.005;
+        targetRotation.current.y += 0.004;
       }
 
       currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * 0.08;
@@ -341,15 +343,15 @@ export const StoneViewer3D: React.FC = () => {
       renderer.setSize(newWidth, newHeight);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      observer.disconnect();
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       geometry.dispose();
       material.dispose();
-      stoneTexture.dispose();
       shadowGeo.dispose();
       shadowMat.dispose();
     };
@@ -406,7 +408,7 @@ Could you provide current warehouse pricing and slab availability at Olaniyonu M
   };
 
   return (
-    <section id="visualizer-3d" className="py-20 bg-[#F7F5F0] border-b border-[#E5E3DF]">
+    <section ref={containerRef} id="visualizer-3d" className="py-20 bg-[#F7F5F0] border-b border-[#E5E3DF]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
@@ -490,8 +492,8 @@ Could you provide current warehouse pricing and slab availability at Olaniyonu M
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerUp}
-            className="w-full h-[400px] sm:h-[480px] cursor-grab active:cursor-grabbing touch-none relative select-none"
-            aria-label="Interactive 3D natural stone slab viewport. Drag to rotate."
+            className="w-full h-[400px] sm:h-[480px] cursor-grab active:cursor-grabbing touch-pan-y relative select-none"
+            aria-label="Interactive 3D natural stone slab viewport. Drag horizontally to rotate."
           />
 
           {/* Hint Overlay for first-time visitors */}

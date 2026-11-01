@@ -1,6 +1,7 @@
 import React from 'react';
 import { APPLICATIONS, BUSINESS_INFO } from '../data/stoneData';
 import { MessageCircle } from 'lucide-react';
+import { OptimizedImage } from './OptimizedImage';
 
 export const ApplicationsSection: React.FC = () => {
   return (
@@ -27,11 +28,12 @@ export const ApplicationsSection: React.FC = () => {
               className="bg-[#F7F5F0] rounded-xl overflow-hidden border border-[#C8BBA8] shadow-xs hover:shadow-md transition-shadow flex flex-col"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-[#E5E3DF]">
-                <img
+                <OptimizedImage
                   src={app.image}
                   alt={app.title}
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                  fallbackText={app.title}
+                  aspectRatioClass="aspect-[16/10]"
+                  className="transition-transform duration-500 hover:scale-105"
                 />
               </div>
 
